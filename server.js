@@ -2,11 +2,18 @@ const express = require("express");
 
 const app = express();
 
-app.use(express.raw({ type: "/", limit: "1gb" }));
-
+// STREAM upload (safe for large files)
 app.post("/", (req, res) => {
-  console.log(Received ${req.body.length} bytes);
-  res.send("Upload received");
+  let size = 0;
+
+  req.on("data", chunk => {
+    size += chunk.length;
+  });
+
+  req.on("end", () => {
+    console.log(`Received ${size} bytes at ${new Date()}`);
+    res.send("OK");
+  });
 });
 
 app.get("/", (req, res) => {
@@ -14,4 +21,4 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server started"));
+app.listen(PORT, () => console.log(`Running on ${PORT}`));
